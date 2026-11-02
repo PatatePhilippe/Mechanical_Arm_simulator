@@ -47,15 +47,16 @@ const char *sl_comments[] = {
     "#"
 };
 
-
-
-typedef struct {//TODO : use that later to extract data
-    Alexer *lexer;
+typedef struct {
+    Alexer lexer;
     Alexer_Token token;
     vertex *vertices;
+    char *file_material;//TODO : change name later when used
+    char *usage_material;//TODO : change name later when used
     size_t vertex_count;
     size_t vertex_capacity;
-} Parser;
+} Parsed_object;
+
 
 uint64_t start_tokens[]={ALEXER_ID(ALEXER_KEYWORD,KEYWORD_VERTEX),
                         ALEXER_ID(ALEXER_KEYWORD,KEYWORD_MTL),
@@ -75,32 +76,29 @@ vertex vertexList[300] = {0};
 int cptTriangles = 0;
 int cptVertexs = 0;
 
-bool double_parser(double *resultPointer,Alexer_Token *t,Alexer *l){//TODO : change variables names
-    bool negation=false;
+bool double_parser(double *output,Alexer_Token *t,Alexer *l){
+    bool signed_bool=false;
     if (t->id==ALEXER_ID(ALEXER_PUNCT,PUNCT_MINUS)){
         alexer_get_token(l, t );
-        negation=true;
+        signed_bool=true;
     }
     if (!(alexer_expect_id(l,*t, ALEXER_INT))) return false;
 
-    char input2[t->end - t->begin];
-    memcpy(&input2,t->begin,(t->end - t->begin)*sizeof(char));
+    char whole_number[t->end - t->begin];
+    memcpy(&whole_number,t->begin,(t->end - t->begin)*sizeof(char));
     alexer_get_token(l, t );
 
     if (!alexer_expect_id(l,*t,ALEXER_ID(ALEXER_PUNCT,PUNCT_POINT))) return false ;
     alexer_get_token(l, t );
 
     if (!alexer_expect_id(l,*t,ALEXER_INT)) return false;
-    char res[t->end - t->begin];
-    memcpy(&res,t->begin,(t->end - t->begin)*sizeof(char));
+    char decimal_number[t->end - t->begin];
+    memcpy(&decimal_number,t->begin,(t->end - t->begin)*sizeof(char));
 
     char str[32];
-    snprintf(str, sizeof(str), "%s.%s", input2,res);
-    *resultPointer = strtod(str, NULL);
-    if (negation)
-    {
-        *resultPointer*=-1;
-    }
+    snprintf(str, sizeof(str), "%s.%s", whole_number,decimal_number);
+    *output = strtod(str, NULL);
+    if (signed_bool) *output*=-1;
     return true;
 }
 
@@ -243,67 +241,54 @@ bool normal_parser(Alexer_Token *t,Alexer *l){
     return true;
 }//TODO : the result is verified and not used for now
 
+void parser_init(Parsed_object *p,char *content){
+    const char *file_path = "example/path"; // The file path is only needed for diagnostic message
+    p->lexer=alexer_create(file_path, content, strlen(content));
+    p->lexer.puncts = puncts;
+    p->lexer.puncts_count = ALEXER_ARRAY_LEN(puncts);
+    p->lexer.keywords = keywords;
+    p->lexer.keywords_count = ALEXER_ARRAY_LEN(keywords);
+    p->lexer.sl_comments = sl_comments;
+    p->lexer.sl_comments_count = ALEXER_ARRAY_LEN(sl_comments);
+
+}
 
 int parser(char *content){
-    const char *file_path = "example/path"; // The file path is only needed for diagnostic message
-    // const char *content =
-    // "# Blender v2.78 (sub 0) OBJ File: '12.blend\n"
-    // "# www.blender.org\n"
-    // "mtllib Goldfish_01.mtl\n"
-    // "g Goldfish_01_Cube.058\n"
-    // "v 0.500000 0.500000 0.500000\n"
-    // "v -0.500000 0.500000 0.500000\n"
-    // "v -0.500000 -0.500000 0.500000\n"
-    // "v 0.500000 -0.500000 0.500000\n"
-    // "v 1.200000 0.500000 1.000000\n"
-    // "vn -0.4091 -0.8730 0.2654\n"
-    // "usemtl FF5722\n"
-    // "s off\n"
-    // "f 3//1 2//1 1//1 0//1\n"
-    // "f 0//1 4//1 3//1 \n"
-    // "";
-
-    Alexer l=alexer_create(file_path, content, strlen(content));
-    l.puncts = puncts;
-    l.puncts_count = ALEXER_ARRAY_LEN(puncts);
-    l.keywords = keywords;
-    l.keywords_count = ALEXER_ARRAY_LEN(keywords);
-    l.sl_comments = sl_comments;
-    l.sl_comments_count = ALEXER_ARRAY_LEN(sl_comments);
-    Alexer_Token token = {0};
+    Parsed_object p;
+    parser_init(&p,content);
     bool end=false;
-    //TODO: rename those variables to clearer names
+    //TODO: make a real init with the parser object
     uint64_t cmdToken2 = 0;
-    alexer_get_token(&l, &token );
+    alexer_get_token(&p.lexer, &p.token );
     while (!end){
-        if (!alexer_expect_one_of_ids(&l,token,start_tokens,9)) return 1;
+        if (!alexer_expect_one_of_ids(&p.lexer,p.token,start_tokens,9)) return 1;
 
-        switch (ALEXER_KIND(token.id)){
+        switch (ALEXER_KIND(p.token.id)){
             case  ALEXER_KEYWORD:
-                l.diagf(token.loc, "COMMANDE", "%s: %.*s \n", alexer_kind_name(ALEXER_KIND(token.id)),token.end - token.begin, token.begin);
-                cmdToken2=token.id;
-                alexer_get_token(&l, &token );
+                p.lexer.diagf(p.token.loc, "COMMANDE", "%s: %.*s \n", alexer_kind_name(ALEXER_KIND(p.token.id)),p.token.end - p.token.begin, p.token.begin);
+                cmdToken2=p.token.id;
+                alexer_get_token(&p.lexer, &p.token );
                 switch (cmdToken2){
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_VERTEX):
-                        if (!polygon_parser(&token,&l)) return 1;
+                        if (!polygon_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_G):
-                        if (!g_parser(&token,&l)) return 1;
+                        if (!g_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_MTL):
-                        if (!material_file_parser(&token,&l)) return 1;
+                        if (!material_file_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_USE):
-                        if (!material_usage_parser(&token,&l)) return 1;
+                        if (!material_usage_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_POINT):
-                        if (!vertex_parser(&token,&l)) return 1;
+                        if (!vertex_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_S):
-                        if (!s_parser(&token,&l)) return 1;
+                        if (!s_parser(&p.token,&p.lexer)) return 1;
                         break;
                     case ALEXER_ID(ALEXER_KEYWORD,KEYWORD_NORMAL):
-                        if (!normal_parser(&token,&l)) return 1;
+                        if (!normal_parser(&p.token,&p.lexer)) return 1;
                         break;
                     default:
                         printf("error");
@@ -314,21 +299,11 @@ int parser(char *content){
                 end = true;
                 break;
             default:
-                l.diagf(token.loc, "DONNEE", "%s: %.*s", alexer_kind_name(ALEXER_KIND(token .id)),
-                       token.end - token.begin, token.begin);
+                p.lexer.diagf(p.token.loc, "DONNEE", "%s: %.*s", alexer_kind_name(ALEXER_KIND(p.token .id)),
+                       p.token.end - p.token.begin, p.token.begin);
                 break;
         }
     }
-    printf("compteurs t:%d v:%d \n",cptTriangles,cptVertexs);
-    // for (int i = 0; i < cptVertexs; ++i){
-    //     printf("coords points %f, %f, %f \n",vertexList[i].coords[0],
-    //         vertexList[i].coords[1],
-    //         vertexList[i].coords[2]);
-    // }
-    // for (int i = 0; i < cptTriangles; ++i){
-    //     printf("triangles from vertexs indexs %d, %d, %d \n",trianglesIndexs[i].verticules[0],
-    //         trianglesIndexs[i].verticules[1],
-    //         trianglesIndexs[i].verticules[2]);
-    // }
+    //TODO : free memory
     return 0;
 }

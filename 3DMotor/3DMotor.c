@@ -9,8 +9,8 @@ const int fovX = 30;
 const double fovY = 50.0;
 const double zFar = 10;
 const double zNear = 1;
-const double screenW=900;
-const double screenH=600;
+const double screenW=1200;
+const double screenH=900;
 const float fovXRad = fovX * (3.14159265359F / 180.0F);
 
 Mat3 mat3_rot_x(double a) {
@@ -88,32 +88,6 @@ Triangle triangle_final(Triangle *t,Mat4 *projection3D) { //TODO : change name t
     return out;
 
 }
-
-// Cube cube_make(double size) {
-//     double h = size / 2.0;
-//     Cube c = {{
-//         //point(x y z)
-//         //south
-//         {{{ -h,-h, -h},{ -h,h, -h},{ h,h, -h}}},
-//         {{{ -h,-h, -h},{ h,h, -h},{ h,-h, -h}}},
-//         //top
-//         {{{ -h,h, -h},{ -h,h, h},{ h,h, h}}},
-//         {{{ -h,h, -h},{ h,h, h},{ h,h, -h}}},
-//         //east
-//         {{{ h,-h, -h},{ h,h, -h},{ h,h, h}}},
-//         {{{ h,-h, -h},{ h,h, h},{ h,-h, h}}},
-//         //west
-//         {{{ -h,-h, h},{ -h,h, h},{ -h,h, -h}}},
-//         {{{ -h,-h, h},{ -h,h, -h},{ -h,-h, -h}}},
-//         //bottom
-//         {{{ h,-h, h},{ -h,-h, h},{ -h,-h, -h}}},
-//         {{{ h,-h, h},{ -h,-h, -h},{ h,-h, -h}}},
-//         //north
-//         {{{ h,-h, h},{ h,h, h},{ -h,h, h}}},
-//         {{{ h,-h, h},{ -h,h, h},{ -h,-h, h}}},
-//     }};
-//     return c;
-// }
 
 void rotate_obj(Triangle *poly_input,Triangle *poly_output,Mat3 matProjection,long unsigned int size) {//TODO : more explicit name
     for(int i =0 ; i < size; i++) {

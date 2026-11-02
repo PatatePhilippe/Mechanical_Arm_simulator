@@ -12,7 +12,9 @@
 #include "../parser/OBJ_parser.h"
 
 
+
 long lightVec[3]={0.0,0.0,-1.0};
+//TODO : use typedef struct {struct objet} Camera; to extend object for exemple
 
 void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3D,size_t size)
 {
@@ -43,10 +45,12 @@ void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3
             vecN.pos[1] * (polys[i].points[2].pos[1] - cam->y) +
             vecN.pos[2] * (polys[i].points[2].pos[2] - cam->z);
 
-        if ((vecN.pos[0] * (polys[i].points[2].pos[0]-cam->x))+
-            (vecN.pos[1] * (polys[i].points[2].pos[1]-cam->y))+
-            (vecN.pos[2] * (polys[i].points[2].pos[2]-cam->z))<-0.35F)
-        {
+        if (facing<-1.5F){
+            // printf(" %f %f %f \n",
+            //     vecN.pos[0] * (polys[i].points[2].pos[0] - cam->x),
+            //     vecN.pos[1] * (polys[i].points[2].pos[1] - cam->y),
+            //     vecN.pos[2] * (polys[i].points[2].pos[2] - cam->z));
+
             double dotProduct=(vecN.pos[0]*lightVec[0]+
             vecN.pos[1]*lightVec[1]+
             vecN.pos[2]*lightVec[2]);
@@ -56,8 +60,8 @@ void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3
             SDL_Vertex test[3];
             for (int i = 0; i < 3; ++i)
             {
-                test[i].position.x = (t.points[i].pos[0]+0.5)*600;
-                test[i].position.y = (0.5-t.points[i].pos[1])*400;
+                test[i].position.x = (t.points[i].pos[0]+0.5)*screenW;
+                test[i].position.y = (0.5-t.points[i].pos[1])*screenH;
                 test[i].color.r = dotProduct;
                 test[i].color.g = dotProduct;
                 test[i].color.b = dotProduct;
@@ -65,18 +69,18 @@ void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3
 
                 //lines to show the faces better
                 SDL_RenderLine(rendu,
-                    (t.points[i].pos[0]+0.5)*600,
-                    (0.5-t.points[i].pos[1])*400,
-                    (t.points[(i+1)%3].pos[0]+0.5)*600,
-                    (0.5-t.points[(i+1)%3].pos[1])*400);
+                    (t.points[i].pos[0]+0.5)*screenW,
+                    (0.5-t.points[i].pos[1])*screenH,
+                    (t.points[(i+1)%3].pos[0]+0.5)*screenW,
+                    (0.5-t.points[(i+1)%3].pos[1])*screenH);
             }
             SDL_RenderGeometry(rendu, NULL, test, 3, NULL, 0);
         }
     }
 }
 
-
-void all_proj_obj(Triangle *poly_input,Triangle *poly_output,Camera *cam,Mat4 *proj3D,SDL_Renderer *rendu,long unsigned int size){
+//TODO : change name to something clearer
+void proj_obj(Triangle *poly_input,Triangle *poly_output,Camera *cam,Mat4 *proj3D,SDL_Renderer *rendu,long unsigned int size){
     Triangle poly_input_copy[size];
     memcpy(poly_input_copy, poly_input, size * sizeof(Triangle));
 
@@ -119,57 +123,42 @@ void sdlEventCommands(Camera *cam,SDL_Event *e,int *isOpen)
         case SDLK_S:
             turn_cam( cam, 'x', -0.03);
             break;
-            
         //TODO : camera moving forward, bakcward ...
-        // case SDLK_DOWN:
-        //     cam_move( cam, 'f', 1);
-        //
-        //     break;
-        // case SDLK_UP:
-        //     turn_cam( cam, 'y', -0.03);
-        //     break;
-        // case SDLK_LEFT:
-        //     turn_cam( cam, 'x', 0.03);
-        //     break;
-        // case SDLK_RIGHT:
-        //     turn_cam( cam, 'x', -0.03);
-        //     break;
 
         default:
             break;
         }
     }
 }
+bool screen_init(SDL_Window *fenetre,SDL_Renderer *rendu){
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        printf("Erreur SDL_Init : %s\n", SDL_GetError());
+        return false;
+    }
+    if (!fenetre) {
+        printf("Erreur SDL_CreateWindow : %s\n", SDL_GetError());
+        SDL_Quit();
+        return false;
+    }
+    if (!rendu) {
+        printf("Erreur SDL_CreateRenderer : %s\n", SDL_GetError());
+        SDL_DestroyWindow(fenetre);
+        SDL_Quit();
+        return false;
+    }
+    SDL_SetRenderLogicalPresentation(rendu,screenW,screenH,SDL_LOGICAL_PRESENTATION_STRETCH);
+    return true;
+}
 
 
 
 int main(int argc, char *argv[]) {
     //init screen
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        printf("Erreur SDL_Init : %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Window *fenetre = SDL_CreateWindow("Ma fenêtre SDL",
-                                           900, 600,SDL_WINDOW_RESIZABLE);
-
-    if (!fenetre) {
-        printf("Erreur SDL_CreateWindow : %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-
+    SDL_Window *fenetre=SDL_CreateWindow("Ma fenêtre SDL",screenW, screenH,SDL_WINDOW_RESIZABLE);;
     SDL_Renderer *rendu = SDL_CreateRenderer(fenetre, "openGL");
-    if (!rendu) {
-        printf("Erreur SDL_CreateRenderer : %s\n", SDL_GetError());
-        SDL_DestroyWindow(fenetre);
-        SDL_Quit();
-        return 1;
-
-    }
-    int isOpen = 1;
     SDL_Event e;
-    SDL_SetRenderLogicalPresentation(rendu,600,400,SDL_LOGICAL_PRESENTATION_STRETCH);
+    if (!screen_init(fenetre,rendu)) return 1;
+    int isOpen = 1;
 
     //3D object init
     Mat4 proj3D=projectionMatrix();
@@ -179,29 +168,29 @@ int main(int argc, char *argv[]) {
 
     char* OBJfile = read3dFile();
     if (parser(OBJfile)==1)return 1;
-    printf("triangle vertexsize %d %d \n",cptTriangles,cptVertexs);
+    free(OBJfile);//TODO : maybe put it in the OBJfile
     Triangle polys_origin[cptTriangles];
     Triangle polys_transformed[cptTriangles];
+    object_3D shaft={
+        0.0F,0.0F,0.0F,
+        0.0F,0.0F,0.0F,
+        0.0F,0.0F,0.0F,
+        malloc(sizeof(Triangle)*cptTriangles)
+    };
+
+
+
     unsigned int coordSize=3*sizeof(double);
     for (int i = 0; i < cptTriangles; ++i){
         for (int y = 0; y < 3; ++y){
-            printf("%lu \n",sizeof(trianglesIndexs[i].verticules[y]));
-
             unsigned int targetVertex = trianglesIndexs[i].verticules[y];
-            printf("i:%d, y:%d -> Demande le sommet index : %u (Max autorisé : %d)\n", i, y, targetVertex, cptVertexs - 1);
-            if (targetVertex >= (unsigned int)cptVertexs) {
-                fprintf(stderr, "CRITIQUE : L'index de triangle %d pointe vers le sommet %u qui n'existe pas !\n", i, targetVertex);
-                return 1;
-            }
             memcpy(&polys_origin[i].points[y].pos,
                    &vertexList[targetVertex].coords,
                    coordSize);
 
         }
     }
-
-    printf("test %f %f %f \n",polys_origin[0].points[0].pos[0],polys_origin[0].points[0].pos[1],polys_origin[0].points[0].pos[2]);
-    all_proj_obj(polys_origin,polys_transformed,&cam,&proj3D,rendu,cptTriangles);
+    proj_obj(polys_origin,polys_transformed,&cam,&proj3D,rendu,cptTriangles);
     
     //light vec init
     long val=lightVec[0]*lightVec[0]+
@@ -223,7 +212,7 @@ int main(int argc, char *argv[]) {
         SDL_RenderClear(rendu);
         SDL_SetRenderDrawColor(rendu, 200, 200, 200, 255);
         
-        all_proj_obj(polys_origin,polys_transformed,&cam,&proj3D,rendu,cptTriangles);
+        proj_obj(polys_origin,polys_transformed,&cam,&proj3D,rendu,cptTriangles);
         SDL_RenderPresent(rendu);
         usleep(50000);
     }
@@ -231,5 +220,6 @@ int main(int argc, char *argv[]) {
     SDL_DestroyRenderer(rendu);
     SDL_DestroyWindow(fenetre);
     SDL_Quit();
+    //TODO : don't forget to free you memory
     return 0;
 }

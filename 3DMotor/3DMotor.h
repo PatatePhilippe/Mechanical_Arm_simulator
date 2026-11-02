@@ -6,6 +6,8 @@
 #define MOTEUR_GRAPHIQUE
 #include <stddef.h>
 
+
+
 typedef struct {
     double pos[3];
 } Vec3;
@@ -30,16 +32,27 @@ typedef struct {
 } Triangle;
 
 //TODO: replace this part by an object struct to have separate coords later on
-// typedef struct {
-//     Triangle mesh[12];
-//     Vec3 coord;
-// } Cube;
+typedef struct {//make a heap list of objects
+    double angleX, angleY, angleZ,
+    pos_x, pos_y, pos_z,
+    color_R,color_G,color_B;
+    //center_x, center_y, center_z;
+    Triangle *polys;
+} object_3D;
 
 typedef struct {
     double angleX, angleY, angleZ;
     int x, y, z;
 } Camera;
 
+
+extern const int fovX ;
+extern const double fovY;
+extern const double zFar;
+extern const double zNear;
+extern const double screenW;
+extern const double screenH;
+extern const float fovXRad;
 
 
 Mat3  mat3_rot_y(double angle);
