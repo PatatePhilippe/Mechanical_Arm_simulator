@@ -5,6 +5,8 @@
 #include "3DMotor.h"
 #include <math.h>
 #include <stdio.h>
+
+#include "cglm/ivec3.h"
 const int fovX = 30;
 const double fovY = 50.0;
 const double zFar = 10;
@@ -56,8 +58,8 @@ Vec4 mat4_mul(Mat4 *m, Vec4 v) {
 }
 
 
-Vec3 mat3_mul(const Mat3 m, Vec3 v) {
-    Vec3 out;
+vec3 mat3_mul(const Mat3 m, vec3 v) {
+    vec3 out;
     for (int col = 0; col < 3; col++) {
         double cpt = 0;
         for (int row = 0; row < 3; row++)

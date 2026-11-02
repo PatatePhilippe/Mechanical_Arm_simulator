@@ -2,18 +2,14 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "3DMotor.h"
 #include<unistd.h>
 #include <math.h>
-#include <math.h>
-
 #include "fileReader.h"
-#include "../parser/OBJ_parser.h"
+#include "OBJ_parser.h"
+#include "cglm/cglm.h"
 
-
-
-long lightVec[3]={0.0,0.0,-1.0};
+vec3 lightVec[3]={0.0F,0.0F,-1.0F};
 //TODO : use typedef struct {struct objet} Camera; to extend object for exemple
 
 void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3D,size_t size)
@@ -21,7 +17,7 @@ void visual_proj_obj(SDL_Renderer *rendu,Triangle *polys,Camera *cam,Mat4 *proj3
     for (int i = 0; i < size; ++i)
     {
         //verification de mes normales
-        Vec3 vecN,vecA,vecB;
+        vec3 vecN,vecA,vecB;
         for (int j = 0; j < 3; ++j)
         {
             vecA.pos[j]=polys[i].points[1].pos[j]-polys[i].points[0].pos[j];

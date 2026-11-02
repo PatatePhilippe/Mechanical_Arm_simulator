@@ -25,28 +25,24 @@ target_include_directories(alexer INTERFACE
 #git for cglm
 FetchContent_Declare(
         cglm
-        https://github.com/recp/cglm.git
-        GIT_TAG main
+        GIT_REPOSITORY https://github.com/recp/cglm.git
+        GIT_TAG        v0.9.7
 )
-FetchContent_GetProperties(cglm)
-add_library(cglm INTERFACE)
-
-
+FetchContent_MakeAvailable(cglm)
 find_package(SDL3 REQUIRED)
 
 
 add_executable(testWindows
-        ./3DMotor/main.c
-        ./3DMotor/3DMotor.c
-        ./3DMotor/3DMotor.h
-        ./3DMotor/fileReader.c
-        ./3DMotor/fileReader.h
-        parser/OBJ_parser.h
-        parser/OBJ_parser.c
+        src/main.c
+        src/3DMotor.c
+        src/3DMotor.h
+        src/fileReader.c
+        src/fileReader.h
+        src/OBJ_parser.h
+        src/OBJ_parser.c
 )
+
 target_link_libraries(testWindows PRIVATE alexer)
 target_link_libraries(testWindows PRIVATE cglm)
-
-
 target_link_libraries(testWindows PRIVATE m)
 target_link_libraries(testWindows PRIVATE SDL3::SDL3)
