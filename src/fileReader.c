@@ -9,7 +9,7 @@
 
 
 unsigned int cptLine(){
-    FILE *f = fopen("../ressources/gf.obj", "r"); // Hardcoding filename
+    FILE *f = fopen("../ressources/test.obj", "r"); // Hardcoding filename
     if (f == NULL) {
         printf("Error: Could not open text.txt\n");
         exit(-1);
@@ -27,7 +27,7 @@ char* read3dFile() {
     unsigned int size=cptLine();
     char *vec=malloc(size*sizeof(char*)) ;
     printf("taille %d \n",size);
-    FILE *f = fopen("../ressources/gf.obj", "r"); // Hardcoding filename
+    FILE *f = fopen("../ressources/test.obj", "r"); // Hardcoding filename
     if (f == NULL) {
         printf("Error: Could not open text.txt\n");
         exit(-1);

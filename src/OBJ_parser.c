@@ -6,6 +6,8 @@
 #include <errno.h>
 #include "OBJ_parser.h"
 
+#include "cglm/ivec3.h"
+
 typedef enum {
     PUNCT_POINT,
     PUNCT_MINUS,
@@ -71,12 +73,12 @@ uint64_t start_double[]={ALEXER_ID(ALEXER_PUNCT,PUNCT_MINUS),
                         ALEXER_INT};
 
 
-triangle trianglesIndexs[500] = {0};
-vertex vertexList[300] = {0};
+ivec3 trianglesIndexs[500] = {0};
+vec3 vertexList[300] = {0};
 int cptTriangles = 0;
 int cptVertexs = 0;
 
-bool double_parser(double *output,Alexer_Token *t,Alexer *l){
+bool double_parser(float *output,Alexer_Token *t,Alexer *l){
     bool signed_bool=false;
     if (t->id==ALEXER_ID(ALEXER_PUNCT,PUNCT_MINUS)){
         alexer_get_token(l, t );
@@ -143,37 +145,31 @@ bool polygon_parser(Alexer_Token *t,Alexer *l){
             alexer_get_token(l, t );
             //calculation of a new average point a the center of the polygone to divide him into triangles
 
-
-            trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-            trianglesIndexs[cptTriangles].verticules[0]=tempPos[0];
-            trianglesIndexs[cptTriangles].verticules[1]=tempPos[1];
-            trianglesIndexs[cptTriangles].verticules[2]=tempPos[3];
+            
+            trianglesIndexs[cptTriangles][0]=tempPos[0];
+            trianglesIndexs[cptTriangles][1]=tempPos[1];
+            trianglesIndexs[cptTriangles][2]=tempPos[3];
             cptTriangles++;
-            trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-            trianglesIndexs[cptTriangles].verticules[0]=tempPos[1];
-            trianglesIndexs[cptTriangles].verticules[1]=tempPos[2];
-            trianglesIndexs[cptTriangles].verticules[2]=tempPos[3];
+            trianglesIndexs[cptTriangles][0]=tempPos[1];
+            trianglesIndexs[cptTriangles][1]=tempPos[2];
+            trianglesIndexs[cptTriangles][2]=tempPos[3];
             cptTriangles++;
-            trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-            trianglesIndexs[cptTriangles].verticules[0]=tempPos[3];
-            trianglesIndexs[cptTriangles].verticules[1]=tempPos[4];
-            trianglesIndexs[cptTriangles].verticules[2]=tempPos[0];
+            trianglesIndexs[cptTriangles][0]=tempPos[3];
+            trianglesIndexs[cptTriangles][1]=tempPos[4];
+            trianglesIndexs[cptTriangles][2]=tempPos[0];
             cptTriangles++;
         }else{
-            trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-            memcpy(trianglesIndexs[cptTriangles].verticules,&tempPos,3*sizeof(unsigned int));
+            memcpy(trianglesIndexs[cptTriangles],&tempPos,3*sizeof(unsigned int));
             cptTriangles++;
-            trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-            trianglesIndexs[cptTriangles].verticules[0]=tempPos[2];
-            trianglesIndexs[cptTriangles].verticules[1]=tempPos[3];
-            trianglesIndexs[cptTriangles].verticules[2]=tempPos[0];
+            trianglesIndexs[cptTriangles][0]=tempPos[2];
+            trianglesIndexs[cptTriangles][1]=tempPos[3];
+            trianglesIndexs[cptTriangles][2]=tempPos[0];
             cptTriangles++;
 
         }
     }else{
         if(!alexer_expect_one_of_ids(l,*t,start_tokens,9))return false;
-        trianglesIndexs[cptTriangles].verticules=malloc(3*sizeof(unsigned int));
-        memcpy(trianglesIndexs[cptTriangles].verticules,&tempPos,3*sizeof(unsigned int));
+        memcpy(trianglesIndexs[cptTriangles],&tempPos,3*sizeof(unsigned int));//TODO : replace with vec copy
         cptTriangles++;
     }
     return true;
@@ -215,7 +211,7 @@ bool material_usage_parser(Alexer_Token *t,Alexer *l){
 bool vertex_parser(Alexer_Token *t,Alexer *l){
     for (int i = 0; i < 3; ++i)
     {
-        if (!double_parser(&vertexList[cptVertexs].coords[i],t,l))return false;
+        if (!double_parser(&vertexList[cptVertexs][i],t,l))return false;
         //printf("%f \n",vertexList[cptVertexs].coords[i]);
         alexer_get_token(l, t );
     }
@@ -232,7 +228,7 @@ bool s_parser(Alexer_Token *t,Alexer *l){
 }//TODO : the result is not verified and not used for now
 
 bool normal_parser(Alexer_Token *t,Alexer *l){
-    double tempNormal[3];
+    float tempNormal[3];
     for (int i = 0; i < 3; ++i)
     {
         if (!double_parser(&tempNormal[i],t,l))return false;

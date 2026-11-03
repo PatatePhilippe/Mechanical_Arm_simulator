@@ -9,24 +9,24 @@
 #include "cglm/ivec3.h"
 
 
-typedef struct {
-    double pos[4];
-} Vec4;
-
-typedef struct {
-    double m[3][3];
-} Mat3;
-
-typedef struct {
-    double m[4][4];
-} Mat4;
+// typedef struct {
+//     double pos[4];
+// } Vec4;
+//
+// typedef struct {
+//     double m[3][3];
+// } Mat3;
+//
+// typedef struct {
+//     double m[4][4];
+// } Mat4;
 
 
 //triangles representing the face
 //clock wise
-typedef struct {
-    vec3 points;
-} Triangle;
+// typedef struct {
+//     mat3 vertexs;
+// } Triangle;
 
 //TODO: replace this part by an object struct to have separate coords later on
 typedef struct {//make a heap list of objects
@@ -34,12 +34,12 @@ typedef struct {//make a heap list of objects
     pos_x, pos_y, pos_z,
     color_R,color_G,color_B;
     //center_x, center_y, center_z;
-    Triangle *polys;
+    // Triangle *polys;
 } object_3D;
 
 typedef struct {
-    double angleX, angleY, angleZ;
-    int x, y, z;
+    vec3 angles;
+    vec3 pos;
 } Camera;
 
 
@@ -47,24 +47,24 @@ extern const int fovX ;
 extern const double fovY;
 extern const double zFar;
 extern const double zNear;
-extern const double screenW;
-extern const double screenH;
+extern const float screenW;
+extern const float screenH;
 extern const float fovXRad;
 
 
-Mat3  mat3_rot_y(double angle);
-Mat3  mat3_rot_x(double angle);
-Mat3  mat3_rot_z(double angle);
+void mat3_rot_y(double angle,mat3 out);
+void mat3_rot_x(double angle,mat3 out);
+void mat3_rot_z(double angle,mat3 out);
+void mat3_mul(mat3 m, vec3 v,vec3 res);
 
-vec3  mat3_mul(Mat3 m, vec3 v);
 //Cube  cube_make(double size);
-void  rotate_obj(Triangle *poly_input,Triangle *poly_output,Mat3 matProjection,long unsigned int size);
-void  move_cam(Camera *cam, char dir,int amount);
-void  turn_cam(Camera *cam, char dir, double amount);
-vec3  finalOperation(vec3 v);//TODO : change name
-Triangle triangle_final(Triangle *t,Mat4 *projection3D);
-void move_obj(Triangle *poly_input ,double dist,int indexOfAxe,long unsigned int size);
-Mat4 projectionMatrix();
+void  rotate_obj(mat3 mat_proj,mat3 *in,mat3 *dest,size_t size);
+
+void move_cam(Camera *cam, char dir, int amount);
+void turn_cam(Camera *cam, char dir, float amount);
+void triangle_final(mat3 triangle,mat3 dest, mat4 *projection3D);
+void move_obj(mat3 *polys ,float dist,int indexOfAxe,long unsigned int size);
+void projectionMatrix(mat4 dest);
 
 
 
