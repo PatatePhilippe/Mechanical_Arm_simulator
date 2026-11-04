@@ -40,6 +40,8 @@ add_executable(testWindows
         src/fileReader.h
         src/OBJ_parser.h
         src/OBJ_parser.c
+        src/Mechanical_arm.c
+        src/Mechanical_arm.h
 )
 
 target_link_libraries(testWindows PRIVATE alexer)

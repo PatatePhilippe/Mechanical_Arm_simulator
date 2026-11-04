@@ -30,11 +30,8 @@
 
 //TODO: replace this part by an object struct to have separate coords later on
 typedef struct {//make a heap list of objects
-    double angleX, angleY, angleZ,
-    pos_x, pos_y, pos_z,
-    color_R,color_G,color_B;
-    //center_x, center_y, center_z;
-    // Triangle *polys;
+    vec3 angles,pos,color;
+    mat3 *triangles;
 } object_3D;
 
 typedef struct {

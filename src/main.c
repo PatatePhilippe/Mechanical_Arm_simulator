@@ -16,48 +16,32 @@ void visual_proj_obj(SDL_Renderer *rendu,mat3 *polys,Camera *cam,mat4 *visual_pr
 {
     for (int i = 0; i < size; ++i)
     {
-
         vec3 vecN,vecA,vecB;
-        for (int j = 0; j < 3; ++j)
-        {
-            vecA[j]=polys[i][1][j]-polys[i][0][j];
-            vecB[j]=polys[i][2][j]-polys[i][0][j];
+        glm_vec3_sub(polys[i][1],polys[i][0],vecA);
+        glm_vec3_sub(polys[i][2],polys[i][0],vecB);
+        for (int j = 0; j < 3; ++j){
+            vecN[j]=vecA[(j+1)%3]*vecB[(j+2)%3]-vecA[(j+2)%3]*vecB[(j+1)%3];
         }
-        //perpendicular vector to the plan of the triangle(where the plan face)
-        vecN[0]=vecA[1]*vecB[2]-vecA[2]*vecB[1];
-        vecN[1]=vecA[2]*vecB[0]-vecA[0]*vecB[2];
-        vecN[2]=vecA[0]*vecB[1]-vecA[1]*vecB[0];
         //normalise vector : vecN = vecN / ||vecN||
         glm_vec3_normalize(vecN);
-
         double facing =
             vecN[0] * (polys[i][2][0] - cam->pos[0]) +
             vecN[1] * (polys[i][2][1] - cam->pos[1]) +
             vecN[2] * (polys[i][2][2] - cam->pos[2]);
 
-        printf("facing %f \n",facing);
         if (facing<0){
             double dotProduct=glm_vec3_dot(vecN,light_vec);
             //showing my vertex
             mat3 rep;
             triangle_final(polys[i],rep,visual_proj);
             SDL_Vertex test[3];
-            for (int h = 0; h < 3; ++h)
-            {
-
-                printf(" x%f y%f \n",
-                      rep[h][0],
-                      rep[h][1]);
-                 printf(" x%f y%f \n",
-                      (rep[h][0]+0.5f)*((float)screenW),
-                      (0.5f-rep[h][1])*((float)screenH));
+            for (int h = 0; h < 3; ++h){
                 test[h].position.x = (rep[h][0]+0.5)*((float)screenW);
                 test[h].position.y = (0.5-rep[h][1])*((float)screenH);
                 test[h].color.r = dotProduct;
                 test[h].color.g = dotProduct;
                 test[h].color.b = dotProduct;
                 test[h].color.a = 1.0;
-
 
                 //lines to show the faces better
                 SDL_RenderLine(rendu,
@@ -162,9 +146,10 @@ int main(int argc, char *argv[]) {
     mat3 pol_orig[cptTriangles];
     mat3 pol_copy[cptTriangles];
     object_3D shaft={
-        0.0F,0.0F,0.0F,
-        0.0F,0.0F,0.0F,
-        0.0F,0.0F,0.0F,
+        0.0f,0.0f,0.0f,
+        0.0f,0.0f,0.0f,
+
+        0.0f,0.5f,1.0f
         //TODO : readd triangles
     };
 
