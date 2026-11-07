@@ -246,7 +246,6 @@ void parser_init(Parsed_object *p,char *content){
     p->lexer.keywords_count = ALEXER_ARRAY_LEN(keywords);
     p->lexer.sl_comments = sl_comments;
     p->lexer.sl_comments_count = ALEXER_ARRAY_LEN(sl_comments);
-
 }
 
 int parser(char *content){

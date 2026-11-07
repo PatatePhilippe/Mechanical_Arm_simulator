@@ -5,11 +5,10 @@
 #include "3DMotor.h"
 #include <math.h>
 #include <stdio.h>
-
-#include "cglm/ivec3.h"
 #include "cglm/mat3.h"
 #include "cglm/mat4.h"
 #include "cglm/call/mat4.h"
+
 const int fovX = 30;
 const double fovY = 50.0;
 const double zFar = 10;

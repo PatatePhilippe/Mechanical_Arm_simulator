@@ -7,33 +7,14 @@
 #include <stddef.h>
 
 #include "cglm/ivec3.h"
-
-
-// typedef struct {
-//     double pos[4];
-// } Vec4;
-//
-// typedef struct {
-//     double m[3][3];
-// } Mat3;
-//
-// typedef struct {
-//     double m[4][4];
-// } Mat4;
-
-
-//triangles representing the face
-//clock wise
-// typedef struct {
-//     mat3 vertexs;
-// } Triangle;
-
 //TODO: replace this part by an object struct to have separate coords later on
+#pragma once
 typedef struct {//make a heap list of objects
-    vec3 angles,pos,color;
-    mat3 *triangles;
+    vec3 angles,pos,color,center_point;
+    mat3 triangles[8];
 } object_3D;
 
+#pragma once
 typedef struct {
     vec3 angles;
     vec3 pos;

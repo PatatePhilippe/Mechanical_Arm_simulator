@@ -4,10 +4,11 @@
 #include <stdlib.h>
 #include "3DMotor.h"
 #include<unistd.h>
-#include <math.h>
 #include "fileReader.h"
 #include "OBJ_parser.h"
 #include "cglm/cglm.h"
+#include "Mechanical_arm.h"
+
 
 vec3 light_vec={0.0F,0.0F,-1.0F};
 //TODO : use typedef struct {struct objet} Camera; to extend object for exemple
@@ -57,20 +58,22 @@ void visual_proj_obj(SDL_Renderer *rendu,mat3 *polys,Camera *cam,mat4 *visual_pr
 }
 
 //TODO : change name to something clearer
-void proj_obj(mat3 *poly_in,mat3 *poly_out,Camera *cam,mat4 *visual_proj,SDL_Renderer *rendu,long unsigned int size){
+void proj_obj(mat3 *poly_in,Camera *cam,mat4 *visual_proj,SDL_Renderer *rendu,long unsigned int size){
     mat3 proj_angle;
+    mat3 pol_copy[cptTriangles];
     //printf("%f %f %f",cam->angles[0],cam->angles[1],cam->angles[2]);
     mat3_rot_x( cam->angles[0],proj_angle);
-    rotate_obj(proj_angle,poly_in,poly_out, size);
+    rotate_obj(proj_angle,poly_in,pol_copy, size);
     mat3_rot_y(cam->angles[1] ,proj_angle);
-    rotate_obj(proj_angle,poly_out,poly_out, size);
+    rotate_obj(proj_angle,pol_copy,pol_copy, size);
     mat3_rot_z(cam->angles[2] ,proj_angle);
-    rotate_obj(proj_angle,poly_out,poly_out, size);
+    rotate_obj(proj_angle,pol_copy,pol_copy, size);
 
-    move_obj(poly_out,10,2,size);//temporary move to see the object clearly
+    move_obj(pol_copy,10,2,size);//temporary move to see the object clearly
     //TODO:always moove by the parameter of the object ?
-    visual_proj_obj(rendu,poly_out,cam,visual_proj,size);
+    visual_proj_obj(rendu,pol_copy,cam,visual_proj,size);
 }
+
 //TODO : cam in global variable ?
 void sdlEventCommands(Camera *cam,SDL_Event *e,int *isOpen)
 {
@@ -104,6 +107,7 @@ void sdlEventCommands(Camera *cam,SDL_Event *e,int *isOpen)
         }
     }
 }
+
 bool screen_init(SDL_Window *fenetre,SDL_Renderer *rendu){
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         printf("Erreur SDL_Init : %s\n", SDL_GetError());
@@ -124,15 +128,13 @@ bool screen_init(SDL_Window *fenetre,SDL_Renderer *rendu){
     return true;
 }
 
-
-
 int main(int argc, char *argv[]) {
     //init screen
     SDL_Window *fenetre=SDL_CreateWindow("Ma fenêtre SDL",screenW, screenH,SDL_WINDOW_RESIZABLE);;
     SDL_Renderer *rendu = SDL_CreateRenderer(fenetre, "openGL");
     SDL_Event e;
     if (!screen_init(fenetre,rendu)) return 1;
-    int isOpen = 1;
+    int isOpen = 0;
 
     //3D object init
     mat4 visual_proj;
@@ -144,16 +146,10 @@ int main(int argc, char *argv[]) {
     if (parser(OBJfile)==1)return 1;
     free(OBJfile);//TODO : maybe put it in the OBJfile
     mat3 pol_orig[cptTriangles];
-    mat3 pol_copy[cptTriangles];
-    object_3D shaft={
-        0.0f,0.0f,0.0f,
-        0.0f,0.0f,0.0f,
-
-        0.0f,0.5f,1.0f
-        //TODO : readd triangles
-    };
+    map1;
 
 
+    arm_simulation();
 
     unsigned int coordSize=3*sizeof(double);
     for (int i = 0; i < cptTriangles; ++i){
@@ -165,7 +161,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    proj_obj(pol_orig,pol_copy,&cam,&visual_proj,rendu,cptTriangles);//TODO:
+    proj_obj(pol_orig,&cam,&visual_proj,rendu,cptTriangles);//TODO:
     glm_vec3_normalize(light_vec);
 
     while (isOpen!=0)
@@ -177,7 +173,7 @@ int main(int argc, char *argv[]) {
         SDL_SetRenderDrawColor(rendu, 0, 0, 0, 255);
         SDL_RenderClear(rendu);
         SDL_SetRenderDrawColor(rendu, 200, 200, 200, 255);
-        proj_obj(pol_orig,pol_copy,&cam,&visual_proj,rendu,cptTriangles);//TODO: change rendu t english name
+        proj_obj(pol_orig,&cam,&visual_proj,rendu,cptTriangles);//TODO: change rendu t english name
         SDL_RenderPresent(rendu);
         turn_cam( &cam, 'x', 0.03f);
         usleep(50000);
