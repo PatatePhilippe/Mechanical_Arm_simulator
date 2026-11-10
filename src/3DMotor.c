@@ -48,11 +48,11 @@ void projectionMatrix(mat4 dest){
 }
 
 void triangle_final(mat3 triangle,mat3 dest,mat4 *projection3D) { //TODO : change name to something like vertexVisual projection
-    printf("calcul fin \n");
+    //printf("calcul fin \n");
     for(int id =0 ; id < 3; id++){
         vec4 temp_vec={triangle[id][0],triangle[id][1],triangle[id][2],1.0f};
         glmc_mat4_mulv(*projection3D,temp_vec,temp_vec);
-        printf("x %f,y %f,z %f \n",temp_vec[0],temp_vec[1],temp_vec[2]);
+        //printf("x %f,y %f,z %f \n",temp_vec[0],temp_vec[1],temp_vec[2]);
         if (temp_vec[3]!=0.0F){
             dest[id][0]=(temp_vec[0]/temp_vec[2])/temp_vec[3];
             dest[id][1]=(temp_vec[1]/temp_vec[2])/temp_vec[3];

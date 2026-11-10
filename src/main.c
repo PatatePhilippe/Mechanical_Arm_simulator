@@ -73,6 +73,36 @@ void proj_obj(mat3 *poly_in,Camera *cam,mat4 *visual_proj,SDL_Renderer *rendu,lo
     //TODO:always moove by the parameter of the object ?
     visual_proj_obj(rendu,pol_copy,cam,visual_proj,size);
 }
+void proj_mech_arm(mechanical_arm_part *map,Camera *cam,mat4 *visual_proj,SDL_Renderer *rendu,long unsigned int size){
+    mat3 proj_angle;
+    mat3 pol_copy[12];
+    //arm angles
+    mat3_rot_x( map->angles[0],proj_angle);
+    rotate_obj(proj_angle,map->triangles,pol_copy, 12);
+    mat3_rot_y(map->angles[1] ,proj_angle);
+    rotate_obj(proj_angle,pol_copy,pol_copy, 12);
+    mat3_rot_z(map->angles[2] ,proj_angle);
+    rotate_obj(proj_angle,pol_copy,pol_copy, 12);
+    move_obj(pol_copy,map->pos[0],0,12);
+    move_obj(pol_copy,map->pos[1],1,12);
+    move_obj(pol_copy,map->pos[2],2,12);
+
+
+    //camera rotation
+    mat3_rot_x( cam->angles[0],proj_angle);
+    //rotate_obj(proj_angle,map->triangles,pol_copy, 12);
+    rotate_obj(proj_angle,pol_copy,pol_copy, 12);
+    mat3_rot_y(cam->angles[1] ,proj_angle);
+    rotate_obj(proj_angle,pol_copy,pol_copy, 12);
+    mat3_rot_z(cam->angles[2] ,proj_angle);
+    rotate_obj(proj_angle,pol_copy,pol_copy, 12);
+
+    move_obj(pol_copy,8,2,12);//temporary move to see the object clearly
+    move_obj(pol_copy,0,1,12);//temporary move to see the object clearly
+
+    //TODO:always moove by the parameter of the object ?
+    visual_proj_obj(rendu,pol_copy,cam,visual_proj,12);
+}
 
 //TODO : cam in global variable ?
 void sdlEventCommands(Camera *cam,SDL_Event *e,int *isOpen)
@@ -134,7 +164,7 @@ int main(int argc, char *argv[]) {
     SDL_Renderer *rendu = SDL_CreateRenderer(fenetre, "openGL");
     SDL_Event e;
     if (!screen_init(fenetre,rendu)) return 1;
-    int isOpen = 0;
+    int isOpen = 1;
 
     //3D object init
     mat4 visual_proj;
@@ -145,23 +175,26 @@ int main(int argc, char *argv[]) {
     char* OBJfile = read3dFile();
     if (parser(OBJfile)==1)return 1;
     free(OBJfile);//TODO : maybe put it in the OBJfile
-    mat3 pol_orig[cptTriangles];
-    map1;
-
+    // mat3 pol_orig[cptTriangles];
 
     arm_simulation();
 
-    unsigned int coordSize=3*sizeof(double);
-    for (int i = 0; i < cptTriangles; ++i){
-        for (int y = 0; y < 3; ++y){
-            unsigned int targetVertex = trianglesIndexs[i][y];
-            memcpy(&pol_orig[i][y],//TODO : fix later with glm functions
-                   &vertexList[targetVertex],
-                   coordSize);
-        }
-    }
+    // unsigned int coordSize=3*sizeof(double);
+    // for (int i = 0; i < cptTriangles; ++i){
+    //     for (int y = 0; y < 3; ++y){
+    //         unsigned int targetVertex = trianglesIndexs[i][y];
+    //         memcpy(&pol_orig[i][y],//TODO : fix later with glm functions
+    //                &vertexList[targetVertex],
+    //                coordSize);
+    //     }
+    // }
+    arm_simulation();
+    proj_mech_arm(&map1,&cam,&visual_proj,rendu,cptTriangles);
+    proj_mech_arm(&map2,&cam,&visual_proj,rendu,cptTriangles);
+    proj_mech_arm(&map3,&cam,&visual_proj,rendu,cptTriangles);
 
-    proj_obj(pol_orig,&cam,&visual_proj,rendu,cptTriangles);//TODO:
+    //proj_obj(map2,&cam,&visual_proj,rendu,cptTriangles);//TODO:
+
     glm_vec3_normalize(light_vec);
 
     while (isOpen!=0)
@@ -173,9 +206,15 @@ int main(int argc, char *argv[]) {
         SDL_SetRenderDrawColor(rendu, 0, 0, 0, 255);
         SDL_RenderClear(rendu);
         SDL_SetRenderDrawColor(rendu, 200, 200, 200, 255);
-        proj_obj(pol_orig,&cam,&visual_proj,rendu,cptTriangles);//TODO: change rendu t english name
+
+        arm_simulation();
+        proj_mech_arm(&map1,&cam,&visual_proj,rendu,cptTriangles);//TODO : put all poly in a heap memory and show them the farest to the nearest
+        proj_mech_arm(&map2,&cam,&visual_proj,rendu,cptTriangles);
+        proj_mech_arm(&map3,&cam,&visual_proj,rendu,cptTriangles);
+
+        //proj_obj(pol_orig,&cam,&visual_proj,rendu,cptTriangles);//TODO: change rendu t english name
         SDL_RenderPresent(rendu);
-        turn_cam( &cam, 'x', 0.03f);
+        //turn_cam( &cam, 'x', 0.03f);
         usleep(50000);
     }
     // 5. Libération de la mémoire et fermeture
